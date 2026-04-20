@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CUDIS Season 2 Airdrop Calculator</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0d0d1a;
+      color: #e0e0f0;
+      min-height: 100vh;
+      padding: 40px 16px;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #a78bfa, #60a5fa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+    }
+
+    header p {
+      color: #888;
+      font-size: 0.95rem;
+    }
+
+    .total-badge {
+      display: inline-block;
+      margin-top: 12px;
+      background: linear-gradient(135deg, #4c1d95, #1e3a5f);
+      border: 1px solid #6d28d9;
+      border-radius: 20px;
+      padding: 6px 18px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #c4b5fd;
+      letter-spacing: 0.5px;
+    }
+
+    .card {
+      background: #13132a;
+      border: 1px solid #2a2a4a;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #6d6d9e;
+      margin-bottom: 16px;
+    }
+
+    /* Rows */
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .row-num {
+      width: 26px;
+      text-align: right;
+      font-size: 0.8rem;
+      color: #555;
+      flex-shrink: 0;
+    }
+
+    .row input[type="text"] {
+      flex: 2;
+      background: #1c1c38;
+      border: 1px solid #2e2e52;
+      border-radius: 8px;
+      color: #e0e0f0;
+      padding: 9px 12px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .row input[type="text"]:focus {
+      border-color: #7c3aed;
+    }
+
+    .row input[type="text"]::placeholder {
+      color: #3a3a5c;
+    }
+
+    .rate-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      background: #1c1c38;
+      border: 1px solid #2e2e52;
+      border-radius: 8px;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+
+    .rate-wrap:focus-within {
+      border-color: #7c3aed;
+    }
+
+    .rate-wrap input[type="number"] {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #e0e0f0;
+      padding: 9px 10px;
+      font-size: 0.95rem;
+      outline: none;
+      min-width: 0;
+      -moz-appearance: textfield;
+    }
+
+    .rate-wrap input[type="number"]::-webkit-inner-spin-button,
+    .rate-wrap input[type="number"]::-webkit-outer-spin-button { display: none; }
+
+    .rate-unit {
+      padding: 0 10px 0 4px;
+      color: #6d6d9e;
+      font-size: 0.9rem;
+      user-select: none;
+    }
+
+    .result-cell {
+      flex: 2;
+      text-align: right;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #a78bfa;
+      min-width: 120px;
+    }
+
+    .del-btn {
+      width: 28px;
+      height: 28px;
+      flex-shrink: 0;
+      background: none;
+      border: 1px solid #2e2e52;
+      border-radius: 6px;
+      color: #555;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+
+    .del-btn:hover {
+      border-color: #ef4444;
+      color: #ef4444;
+      background: #1f0f0f;
+    }
+
+    /* Column headers */
+    .row-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 6px;
+      padding: 0 0 4px;
+      border-bottom: 1px solid #1e1e3a;
+    }
+
+    .col-label {
+      font-size: 0.72rem;
+      color: #4a4a6e;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .col-num  { width: 26px; flex-shrink: 0; }
+    .col-name { flex: 2; }
+    .col-rate { flex: 1; }
+    .col-res  { flex: 2; text-align: right; }
+    .col-del  { width: 28px; flex-shrink: 0; }
+
+    /* Add button */
+    .add-btn {
+      width: 100%;
+      padding: 10px;
+      background: #1c1c38;
+      border: 1px dashed #2e2e52;
+      border-radius: 8px;
+      color: #5a5a8e;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      margin-top: 4px;
+    }
+
+    .add-btn:hover {
+      border-color: #7c3aed;
+      color: #a78bfa;
+      background: #1c1c42;
+    }
+
+    /* Summary */
+    .summary {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .summary-item {
+      flex: 1;
+      min-width: 140px;
+      background: #1a1a35;
+      border: 1px solid #2a2a4a;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .summary-item.warn {
+      border-color: #92400e;
+      background: #1a1208;
+    }
+
+    .summary-item.ok {
+      border-color: #065f46;
+      background: #071a12;
+    }
+
+    .s-label {
+      font-size: 0.72rem;
+      color: #6d6d9e;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 6px;
+    }
+
+    .s-value {
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+
+    .s-value.purple { color: #a78bfa; }
+    .s-value.green  { color: #34d399; }
+    .s-value.orange { color: #fbbf24; }
+    .s-value.red    { color: #f87171; }
+
+    /* Reset */
+    .reset-btn {
+      background: none;
+      border: 1px solid #2e2e52;
+      border-radius: 8px;
+      color: #555;
+      padding: 7px 16px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .reset-btn:hover {
+      border-color: #6d28d9;
+      color: #a78bfa;
+    }
+
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>CUDIS Airdrop Calculator</h1>
+    <p>Season 2 예상 에어드랍 물량 계산기</p>
+    <span class="total-badge">총 물량 50,000,000 CUDIS</span>
+  </header>
+
+  <div class="card">
+    <div class="header-row">
+      <div class="card-title">항목별 비율 입력</div>
+      <button class="reset-btn" onclick="resetAll()">초기화</button>
+    </div>
+
+    <div class="row-header">
+      <div class="col-label col-num"></div>
+      <div class="col-label col-name">항목명</div>
+      <div class="col-label col-rate">비율</div>
+      <div class="col-label col-res">예상 물량</div>
+      <div class="col-label col-del"></div>
+    </div>
+
+    <div id="rows"></div>
+
+    <button class="add-btn" onclick="addRow()">+ 항목 추가</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">요약</div>
+    <div class="summary">
+      <div class="summary-item">
+        <div class="s-label">총 물량</div>
+        <div class="s-value purple">50,000,000</div>
+      </div>
+      <div class="summary-item" id="sum-box">
+        <div class="s-label">합산 비율</div>
+        <div class="s-value" id="sum-rate">0%</div>
+      </div>
+      <div class="summary-item">
+        <div class="s-label">합산 물량</div>
+        <div class="s-value" id="sum-amount">0</div>
+      </div>
+      <div class="summary-item">
+        <div class="s-label">잔여 물량</div>
+        <div class="s-value" id="remain-amount">50,000,000</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const TOTAL = 50_000_000;
+  let rowId = 0;
+
+  const rowsEl = document.getElementById('rows');
+
+  function addRow(name = '', rate = '') {
+    rowId++;
+    const id = rowId;
+    const div = document.createElement('div');
+    div.className = 'row';
+    div.id = `row-${id}`;
+    div.innerHTML = `
+      <span class="row-num" id="num-${id}"></span>
+      <input type="text" placeholder="항목명 (예: Tier 1)" id="name-${id}" />
+      <div class="rate-wrap">
+        <input type="number" min="0" max="100" step="0.01" placeholder="0" id="rate-${id}" oninput="calc()" />
+        <span class="rate-unit">%</span>
+      </div>
+      <div class="result-cell" id="res-${id}">—</div>
+      <button class="del-btn" onclick="removeRow(${id})" title="삭제">×</button>
+    `;
+    rowsEl.appendChild(div);
+
+    if (name) document.getElementById(`name-${id}`).value = name;
+    if (rate) document.getElementById(`rate-${id}`).value = rate;
+
+    renumber();
+    calc();
+  }
+
+  function removeRow(id) {
+    const el = document.getElementById(`row-${id}`);
+    if (el) el.remove();
+    renumber();
+    calc();
+  }
+
+  function renumber() {
+    const rows = rowsEl.querySelectorAll('.row');
+    rows.forEach((r, i) => {
+      const numEl = r.querySelector('[id^="num-"]');
+      if (numEl) numEl.textContent = i + 1;
+    });
+  }
+
+  function calc() {
+    let totalRate = 0;
+    const rows = rowsEl.querySelectorAll('.row');
+
+    rows.forEach(r => {
+      const id = r.id.replace('row-', '');
+      const rateEl = document.getElementById(`rate-${id}`);
+      const resEl  = document.getElementById(`res-${id}`);
+      if (!rateEl || !resEl) return;
+
+      const rate = parseFloat(rateEl.value) || 0;
+      totalRate += rate;
+      const amount = Math.floor(TOTAL * rate / 100);
+      resEl.textContent = amount > 0 ? amount.toLocaleString() + ' CUDIS' : '—';
+    });
+
+    const sumRate   = totalRate;
+    const sumAmount = Math.floor(TOTAL * sumRate / 100);
+    const remain    = TOTAL - sumAmount;
+
+    document.getElementById('sum-rate').textContent   = sumRate.toFixed(2) + '%';
+    document.getElementById('sum-amount').textContent = sumAmount.toLocaleString();
+    document.getElementById('remain-amount').textContent = remain.toLocaleString();
+
+    const sumBox  = document.getElementById('sum-box');
+    const sumRateEl = document.getElementById('sum-rate');
+    const remainEl  = document.getElementById('remain-amount');
+
+    if (sumRate > 100) {
+      sumBox.className = 'summary-item warn';
+      sumRateEl.className = 's-value red';
+    } else if (sumRate === 100) {
+      sumBox.className = 'summary-item ok';
+      sumRateEl.className = 's-value green';
+    } else {
+      sumBox.className = 'summary-item';
+      sumRateEl.className = 's-value orange';
+    }
+
+    remainEl.className = remain < 0 ? 's-value red' : remain === 0 ? 's-value green' : 's-value orange';
+  }
+
+  function resetAll() {
+    rowsEl.innerHTML = '';
+    rowId = 0;
+    addRow();
+    addRow();
+    addRow();
+  }
+
+  // 초기 3개 항목
+  addRow('Tier 1', '');
+  addRow('Tier 2', '');
+  addRow('Tier 3', '');
+</script>
+</body>
+</html>
